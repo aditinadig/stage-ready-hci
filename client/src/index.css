@@ -1,0 +1,797 @@
+:root {
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #e5e7eb; /* grey around the device */
+}
+
+/* Shell + toggle */
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 12px;
+}
+
+.view-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border-radius: 999px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+  font-size: 0.85rem;
+}
+
+.view-toggle__label {
+  color: #6b7280;
+}
+
+.view-toggle__btn {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.view-toggle__btn--active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* Device frame */
+
+.device-frame {
+  width: 100%;
+  min-height: 700px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  border-radius: 32px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+
+.device-frame--mobile {
+  max-width: 430px;
+}
+
+.device-frame--tablet {
+  max-width: 768px;
+}
+
+@media (max-width: 480px) {
+  .device-frame {
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Header inside device */
+
+.device-header {
+  color: #e5e7eb;
+  padding: 8px 12px 16px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-header__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+.logo-text {
+  font-size: 1.1rem;
+  color: #22c55e;
+}
+
+.device-header__subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #cbd5f5;
+}
+
+/* Main body area */
+
+.device-body {
+  margin-top: 8px;
+  background: #f9fafb;
+  border-radius: 24px;
+  padding: 20px 18px 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Shared screen styles */
+
+.screen {
+  width: 100%;
+}
+
+.screen-title {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  color: #0f172a;
+}
+
+.screen-subtitle {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Cards */
+
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px 16px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.card--padded {
+  margin-top: 8px;
+}
+
+/* Form */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 1rem;
+}
+
+.input:focus {
+  outline: 2px solid #a7f3d0;
+  border-color: #22c55e;
+}
+
+.helper-text {
+  margin: -4px 0 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* Buttons */
+
+.primary-btn {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: not-allowed;
+  background: #e5e7eb;
+  color: #6b7280;
+  transition: background 0.12s ease, transform 0.06s ease;
+}
+
+.primary-btn--active {
+  background: #22c55e;
+  color: #ecfdf5;
+  cursor: pointer;
+}
+
+.primary-btn--active:hover {
+  transform: translateY(-1px);
+}
+
+/* Secondary button & links */
+
+.secondary-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.secondary-btn:hover {
+  background: #f3f4f6;
+}
+
+.back-link {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #0f766e;
+  cursor: pointer;
+}
+
+/* Song list */
+
+.song-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.song-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f3f4f6;
+}
+
+.song-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.song-title {
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.song-tag {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #d1fae5;
+  color: #047857;
+  width: fit-content;
+}
+
+.song-row__go {
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: #22c55e;
+  color: #ecfdf5;
+  cursor: pointer;
+}
+
+
+/* ========== Song detail ========== */
+
+.song-detail {
+  padding-bottom: 12px;
+  /* base font scaling for lyrics */
+  --lyrics-font-scale: 1;
+}
+
+/* theme variations (only affect this screen) */
+
+.song-detail--theme-dark .card {
+  background: #020617;
+  color: #e5e7eb;
+}
+
+.song-detail--theme-dark .lyrics-section--chorus {
+  background: #083344;
+}
+
+.song-detail--theme-dark .lyrics-section--verse {
+  background: #0f172a;
+}
+
+.song-detail--theme-dark .lyrics-section--muted {
+  background: #111827;
+}
+
+.song-detail--theme-high .card {
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000;
+}
+
+.song-detail--theme-high .lyrics-section {
+  border: 2px solid #000;
+}
+
+.song-detail__title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.song-detail__subtitle {
+  margin: 2px 0 12px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Updates panel */
+
+.updates-panel {
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+
+.updates-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.updates-panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.updates-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.updates-panel__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-menu {
+  border-radius: 12px;
+  background: #f1f5f9;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.link-inline {
+  padding: 0;
+  margin: 0 0 6px;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* Update rows */
+
+.updates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.update-row {
+  display: grid;
+  grid-template-columns: 4px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.update-row__bar {
+  width: 4px;
+  height: 100%;
+  border-radius: 999px;
+  background: #ef4444;
+}
+
+.update-row__text {
+  font-size: 0.85rem;
+  color: #111827;
+}
+
+.update-row__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toast-confirm {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #22c55e;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  z-index: 999;
+}
+
+
+/* History */
+
+.history-list {
+  margin-top: 8px;
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 6px;
+}
+
+.history-list__title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: #6b7280;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.history-row__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #9ca3af;
+}
+
+.history-row__text {
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+/* Sections panel */
+
+.sections-panel {
+  margin-bottom: 10px;
+}
+
+.sections-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sections-panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.sections-panel__tags {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.section-tag {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+}
+
+.section-tag--solo {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.section-tag--chorus {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Controls bar */
+
+.controls-bar {
+  margin-bottom: 12px;
+}
+
+.controls-bar__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.controls-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.controls-bar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.controls-bar__group--compact {
+  flex-direction: row;
+  align-items: center;
+}
+
+.controls-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.controls-select {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+/* Chips & icons reused */
+
+.chip {
+  border-radius: 999px;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.chip--primary {
+  background: #22c55e;
+  color: #ecfdf5;
+}
+
+.chip--confirm {
+  background: #bbf7d0;
+  color: #166534;
+}
+
+.chip--small {
+  padding: 3px 8px;
+}
+
+.icon-btn {
+  border: none;
+  background: #e5e7eb;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.icon-circle {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #f3f4f6;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.icon-circle--active {
+  background: #22c55e;
+  color: #ecfdf5;
+}
+
+/* Lyrics area */
+
+.lyrics-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* cue modes */
+
+.lyrics-card--mode-minimal .cue-banner {
+  display: none;
+}
+
+.lyrics-card--mode-margin .cue-banner {
+  text-align: right;
+}
+
+/* highlight when jumped to */
+
+/* Purple highlight style when jumped to */
+.lyrics-section--highlight {
+  box-shadow: 0 0 0 3px #c084fc;   /* purple outline */
+  border-radius: 14px;
+  transition: box-shadow 0.3s ease;
+}
+
+
+/* sections */
+
+.lyrics-section {
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.lyrics-section--chorus {
+  background: #ecfdf5;
+}
+
+.lyrics-section--verse {
+  background: #e0f2fe;
+}
+
+.lyrics-section--muted {
+  background: #f3f4f6;
+}
+
+.lyrics-section__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.caret {
+  font-size: 0.8rem;
+}
+
+.lyrics-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* font scaling via CSS variable */
+
+.lyrics-line {
+  font-size: calc(0.9rem * var(--lyrics-font-scale));
+  margin: 0;
+}
+
+.lyrics-line--strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.lyrics-line--soft {
+  color: #22c55e;
+}
+
+.lyrics-line--muted {
+  color: #9ca3af;
+}
+
+/* Cue banners */
+
+.cue-banner {
+  border-radius: 10px;
+  padding: 6px 10px;
+  margin: 4px 0 6px;
+  font-size: calc(0.8rem * var(--lyrics-font-scale));
+}
+
+.cue-banner--primary {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.cue-banner--secondary {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.cue-banner__meta {
+  display: block;
+  font-size: 0.7rem;
+  color: #b45309;
+  margin-top: 2px;
+}
+
+.cue-banner__confirm-btn {
+  margin-top: 6px;
+}
+
+.cue-inline-confirm {
+  background: #c084fc;
+  border: none;
+  color: white;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+
+/* Comments modal */
+
+.comments-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.comments-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  max-width: 360px;
+  width: calc(100% - 40px);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+}
+
+.comments-modal__title {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.comments-modal__body {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #4b5563;
+}

@@ -1,0 +1,322 @@
+:root {
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #e5e7eb; /* grey around the device */
+}
+
+/* Shell + toggle */
+
+.app-shell {
+  min-height: 100vh;
+  /* NEW: */
+  height: 100vh;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 12px;
+}
+
+
+.view-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border-radius: 999px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+  font-size: 0.85rem;
+}
+
+.view-toggle__label {
+  color: #6b7280;
+}
+
+.view-toggle__btn {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.view-toggle__btn--active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* Device frame */
+
+.device-frame {
+  width: 100%;
+  height: 100%;            /* fill the app-shell height */
+  background: #222;
+  border-radius: 32px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.device-frame--mobile {
+  max-width: 430px;
+  max-height: 800px;
+}
+
+.device-frame--tablet {
+  max-width: 800px;  /* was 768px – now more portrait */
+  max-height: 1300px;
+}
+
+
+@media (max-width: 480px) {
+  .device-frame {
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Header inside device */
+
+.device-header {
+  color: #e5e7eb;
+  padding: 8px 12px 16px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-header__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+.logo-text {
+  font-size: 1.1rem;
+  color: #22c55e;
+}
+
+/* Main body area */
+
+.device-body {
+  margin-top: 8px;
+  background: #f9fafb;
+  border-radius: 24px;
+  padding: 20px 18px 24px;
+  flex: 1;
+  min-height: 0;        /* IMPORTANT: allow flex child to scroll */
+  overflow-y: auto;     /* scrolling happens inside here */
+}
+
+
+/* Shared screen styles */
+
+.screen {
+  width: 100%;
+}
+
+.screen-title {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  color: #0f172a;
+}
+
+.screen-subtitle {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Cards */
+
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px 16px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.card--padded {
+  margin-top: 8px;
+}
+
+/* Form */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 1rem;
+}
+
+.input:focus {
+  outline: 2px solid #a7f3d0;
+  border-color: #22c55e;
+}
+
+.helper-text {
+  margin: -4px 0 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* Buttons */
+
+.primary-btn {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: not-allowed;
+  background: #e5e7eb;
+  color: #6b7280;
+  transition: background 0.12s ease, transform 0.06s ease;
+}
+
+.primary-btn--active {
+  background: #22c55e;
+  color: #ecfdf5;
+  cursor: pointer;
+}
+
+.primary-btn--active:hover {
+  transform: translateY(-1px);
+}
+
+/* Secondary button & links */
+
+.secondary-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.secondary-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Song detail header */
+.song-detail .back-link {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: color 0.2s ease;
+}
+
+.song-detail .back-link:hover {
+  color: #374151;
+}
+
+.back-link {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #0f766e;
+  cursor: pointer;
+}
+
+/* Song list */
+
+.song-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.song-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f3f4f6;
+}
+
+.song-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.song-title {
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.song-tag {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #d1fae5;
+  color: #047857;
+  width: fit-content;
+}
+
+.song-row__go {
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: #22c55e;
+  color: #ecfdf5;
+  cursor: pointer;
+}
