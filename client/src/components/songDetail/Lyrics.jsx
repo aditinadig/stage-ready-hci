@@ -11,6 +11,7 @@ export default function Lyrics({
   confirmUpdate,
   getSectionDomId,
   getSectionKey,
+  recentlyConfirmedInfo,
 }) {
   if (!sections || !lyrics) {
     return (
@@ -65,17 +66,32 @@ export default function Lyrics({
 
         return (
           <div key={section.id} id={sectionId} className={sectionClass}>
-            {/* Floating confirm button */}
-            {isHighlighted && highlightedUpdateId && (
-              <div className="floating-confirm-wrapper">
-                <button
-                  className="floating-confirm-btn"
-                  onClick={() => confirmUpdate(highlightedUpdateId)}
-                >
-                  Confirm
-                </button>
-              </div>
-            )}
+            {/* Floating confirm button / transient feedback */}
+            {(() => {
+              const showFloating = isHighlighted && (
+                highlightedUpdateId || (recentlyConfirmedInfo && recentlyConfirmedInfo.sectionDomId === sectionId)
+              );
+              const showFeedback = recentlyConfirmedInfo && recentlyConfirmedInfo.sectionDomId === sectionId;
+
+              if (!showFloating) return null;
+
+              return (
+                <div className="floating-confirm-wrapper">
+                  {showFeedback && (
+                    <div className="inline-confirm-feedback">✓ Confirmed</div>
+                  )}
+
+                  {highlightedUpdateId && (
+                    <button
+                      className="floating-confirm-btn"
+                      onClick={() => confirmUpdate(highlightedUpdateId)}
+                    >
+                      Confirm
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Section header */}
             <div

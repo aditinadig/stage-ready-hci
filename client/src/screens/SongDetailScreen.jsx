@@ -37,6 +37,7 @@ export default function SongDetailScreen() {
 
   const [expandedSections, setExpandedSections] = useState({});
   const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [recentlyConfirmedInfo, setRecentlyConfirmedInfo] = useState(null);
   const [highlightedSection, setHighlightedSection] = useState(null);
   const [highlightedUpdateId, setHighlightedUpdateId] = useState(null);
 
@@ -107,10 +108,19 @@ export default function SongDetailScreen() {
       const found = updates.find((u) => u.id === id);
       if (found) {
         setConfirmationMessage(found.text + " confirmed");
-        setTimeout(() => setConfirmationMessage(""), 2500);
-        
-        setHighlightedSection(null);
+
+        // record the confirmed update and the section DOM id so we can show transient feedback
+        setRecentlyConfirmedInfo({ updateId: id, sectionDomId: highlightedSection });
+
+        // hide the inline confirm button immediately by clearing highlightedUpdateId
         setHighlightedUpdateId(null);
+
+        // clear confirmation message, transient info and highlight after a short delay
+        setTimeout(() => {
+          setConfirmationMessage("");
+          setRecentlyConfirmedInfo(null);
+          setHighlightedSection(null);
+        }, 2500);
 
         // Reload updates
         const allUpdates = await updatesAPI.getByUser(user.id);
@@ -291,6 +301,7 @@ export default function SongDetailScreen() {
         highlightedSection={highlightedSection}
         highlightedUpdateId={highlightedUpdateId}
         confirmUpdate={confirmUpdate}
+        recentlyConfirmedInfo={recentlyConfirmedInfo}
         getSectionDomId={getSectionDomId}
         getSectionKey={getSectionKey}
       />

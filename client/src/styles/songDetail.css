@@ -1019,6 +1019,20 @@
   margin-bottom: 4px;
 }
 
+.inline-confirm-feedback {
+  margin-right: 10px;
+  background: #d1fae5; /* green-100 */
+  color: #065f46; /* green-800 */
+  border: 1px solid #a7f3d0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* the button itself */
 .floating-confirm-btn {
   background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
