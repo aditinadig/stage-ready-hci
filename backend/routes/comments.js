@@ -1,5 +1,5 @@
 import express from 'express';
-import { db, generateId, getTimestamp, parseJsonArray, stringifyJsonArray } from '../database.js';
+import { db, generateId, getTimestamp } from '../database.js';
 
 const router = express.Router();
 
@@ -58,18 +58,9 @@ router.post('/', (req, res) => {
     const now = getTimestamp();
 
     db.prepare(`
-      INSERT INTO comments (id, updateId, userId, userName, text, parentCommentId, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id, 
-      updateId, 
-      userId, 
-      userName, 
-      text, 
-      parentCommentId || null, 
-      now, 
-      now
-    );
+      INSERT INTO comments (id, updateId, userId, userName, text, parentCommentId, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(id, updateId, userId, userName, text, parentCommentId || null, now);
 
     const comment = db.prepare('SELECT * FROM comments WHERE id = ?').get(id);
     res.status(201).json(comment);
@@ -84,11 +75,8 @@ router.put('/:id', (req, res) => {
     const { text } = req.body;
     const now = getTimestamp();
 
-    const result = db.prepare(`
-      UPDATE comments 
-      SET text = ?, updatedAt = ?
-      WHERE id = ?
-    `).run(text || null, now, req.params.id);
+    const result = db.prepare('UPDATE comments SET text = ? WHERE id = ?')
+      .run(text || null, req.params.id);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Comment not found' });

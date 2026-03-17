@@ -1,129 +1,89 @@
 import express from 'express';
-import { db, generateId, getTimestamp, parseJsonArray, stringifyJsonArray } from '../database.js';
+import { db, generateId, getTimestamp } from '../database.js';
 
 const router = express.Router();
 
-// POST /api/simulate/reassign-chorus2 - Simulate reassigning Chorus 2 lines 1 and 2 to Phil
-router.post('/reassign-chorus2', async (req, res) => {
+/**
+ * POST /api/simulate/reassign-chorus2
+ *
+ * Assigns Chorus 2 lines 1 and 2 to Phil, then creates an update + receipt
+ * targeting Phil so the notification appears in the UI.
+ */
+router.post('/reassign-chorus2', (req, res) => {
   try {
-    // Get the song "Into the Air Tonight"
-    const song = db.prepare('SELECT * FROM songs WHERE title = ?').get('Into the Air Tonight');
-    if (!song) {
-      return res.status(404).json({ error: 'Song not found' });
-    }
+    // Find the song
+    const song = db.prepare("SELECT * FROM songs WHERE title = ?").get('Into the Air Tonight');
+    if (!song) return res.status(404).json({ error: 'Song not found' });
 
-    // Get Chorus 2 section
-    const chorus2 = db.prepare('SELECT * FROM songSections WHERE songId = ? AND sectionType = ? AND sectionNumber = ?')
-      .get(song.id, 'chorus', 2);
-    
-    if (!chorus2) {
-      return res.status(404).json({ error: 'Chorus 2 section not found' });
-    }
+    // Find Chorus 2 section
+    const chorus2 = db.prepare(
+      "SELECT * FROM sections WHERE songId = ? AND sectionType = ? AND sectionNumber = ?"
+    ).get(song.id, 'chorus', 2);
+    if (!chorus2) return res.status(404).json({ error: 'Chorus 2 section not found' });
 
-    // Get Phil's user ID
-    const phil = db.prepare('SELECT * FROM users WHERE userCode = ? AND teamCode = ?').get('PHIL01', 'CHOIR24');
-    if (!phil) {
-      return res.status(404).json({ error: 'Phil user not found' });
-    }
+    // Find Phil
+    const phil = db.prepare(
+      "SELECT * FROM users WHERE userCode = ? AND teamCode = ?"
+    ).get('PHIL01', 'CHOIR24');
+    if (!phil) return res.status(404).json({ error: 'Phil not found' });
 
-    // Get Chorus 2 lyrics (lines 1 and 2)
-    const chorus2Lyrics = db.prepare('SELECT * FROM lyrics WHERE sectionId = ? AND lineNumber IN (?, ?) ORDER BY lineNumber')
-      .all(chorus2.id, 1, 2);
-
-    if (chorus2Lyrics.length === 0) {
+    // Get Chorus 2 lines 1 and 2
+    const chorus2Lines = db.prepare(
+      "SELECT * FROM lines WHERE sectionId = ? AND lineNumber IN (1, 2) ORDER BY lineNumber"
+    ).all(chorus2.id);
+    if (chorus2Lines.length === 0) {
       return res.status(404).json({ error: 'Chorus 2 lines 1 and 2 not found' });
     }
 
     const now = getTimestamp();
 
-    // Update lines 1 and 2 to assign them to Phil
-    for (const lyric of chorus2Lyrics) {
-      const currentAssigned = parseJsonArray(lyric.assignedUserIds);
-      
-      // Add Phil if not already assigned
-      if (!currentAssigned.includes(phil.id)) {
-        currentAssigned.push(phil.id);
-      }
+    // Assign Phil to each line (if not already assigned)
+    const insertLA = db.prepare(
+      'INSERT OR IGNORE INTO line_assignments (id, lineId, userId, createdAt) VALUES (?, ?, ?, ?)'
+    );
+    for (const line of chorus2Lines) {
+      insertLA.run(generateId(), line.id, phil.id, now);
 
-      // Update the lyric
-      db.prepare(`
-        UPDATE lyrics 
-        SET assignedUserIds = ?, lineType = 'own', updatedAt = ?
-        WHERE id = ?
-      `).run(stringifyJsonArray(currentAssigned), now, lyric.id);
+      // Mark line as non-context (isContext = 0) now that it's assigned
+      db.prepare('UPDATE lines SET isContext = 0, updatedAt = ? WHERE id = ?')
+        .run(now, line.id);
     }
 
-    // Update or create user-song assignment for Chorus 2
-    const existingAssignment = db.prepare('SELECT * FROM userSongAssignments WHERE userId = ? AND songId = ?')
-      .get(phil.id, song.id);
-    
-    if (existingAssignment) {
-      // Update existing assignment to include Chorus 2
-      const assignedSections = parseJsonArray(existingAssignment.assignedSections);
-      if (!assignedSections.includes(chorus2.id)) {
-        assignedSections.push(chorus2.id);
-        db.prepare(`
-          UPDATE userSongAssignments 
-          SET assignedSections = ?, updatedAt = ?
-          WHERE id = ?
-        `).run(stringifyJsonArray(assignedSections), now, existingAssignment.id);
-      }
-    } else {
-      // Create new assignment
-      const assignmentId = generateId();
-      db.prepare(`
-        INSERT INTO userSongAssignments (id, userId, songId, teamId, assignedSections, role, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        assignmentId,
-        phil.id,
-        song.id,
-        phil.teamId,
-        stringifyJsonArray([chorus2.id]),
-        null,
-        now,
-        now
-      );
-    }
-
-    // Create an update notification
-    const updateId = generateId();
-    const updateText = 'Chorus 2 lines 1 and 2 reassigned to Phil';
-    
+    // Ensure Phil has a song-level assignment
     db.prepare(`
-      INSERT INTO updates (id, songId, sectionId, text, updateType, status, targetUserIds, confirmedBy, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT OR IGNORE INTO song_assignments (id, userId, songId, teamId, role, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(generateId(), phil.id, song.id, phil.teamId, null, now);
+
+    // Create an update pointing to the first line of Chorus 2
+    const updateId = generateId();
+    const firstLine = chorus2Lines[0];
+
+    db.prepare(`
+      INSERT INTO updates (id, songId, lineId, text, updateType, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
-      updateId,
-      song.id,
-      chorus2.id,
-      updateText,
-      'reassignment',
-      'pending',
-      stringifyJsonArray([phil.id]),
-      '[]',
-      now,
-      now
+      updateId, song.id, firstLine.id,
+      'Chorus 2 lines 1 and 2 reassigned to Phil',
+      'reassignment', now, now
     );
 
-    // Get the created update
+    // Create a pending receipt for Phil
+    db.prepare(`
+      INSERT OR IGNORE INTO update_receipts (id, updateId, userId, status, confirmedAt, createdAt)
+      VALUES (?, ?, ?, 'pending', NULL, ?)
+    `).run(generateId(), updateId, phil.id, now);
+
     const update = db.prepare('SELECT * FROM updates WHERE id = ?').get(updateId);
 
     res.json({
       success: true,
       message: 'Chorus 2 lines 1 and 2 reassigned to Phil',
-      update: {
-        ...update,
-        targetUserIds: parseJsonArray(update.targetUserIds),
-        confirmedBy: parseJsonArray(update.confirmedBy)
-      },
-      updatedLyrics: chorus2Lyrics.map(l => ({
-        ...l,
-        assignedUserIds: parseJsonArray(l.assignedUserIds)
-      }))
+      update,
+      updatedLines: chorus2Lines.map((l) => ({ ...l, isContext: 0 })),
     });
   } catch (error) {
-    console.error('Error simulating update:', error);
+    console.error('Simulate error:', error);
     res.status(500).json({ error: error.message });
   }
 });

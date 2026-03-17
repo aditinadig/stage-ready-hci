@@ -1,137 +1,84 @@
 import express from 'express';
-import { db, generateId, getTimestamp, parseJsonArray, stringifyJsonArray } from '../database.js';
+import { db, generateId, getTimestamp } from '../database.js';
 
 const router = express.Router();
 
-// GET /api/assignments - Get all assignments (optionally filter by userId, songId, or teamId)
+// GET /api/assignments?userId=&songId=&teamId=
 router.get('/', (req, res) => {
   try {
     const { userId, songId, teamId } = req.query;
-    let query = 'SELECT * FROM userSongAssignments WHERE 1=1';
+    let query = 'SELECT * FROM song_assignments WHERE 1=1';
     const params = [];
 
-    if (userId) {
-      query += ' AND userId = ?';
-      params.push(userId);
-    }
-    if (songId) {
-      query += ' AND songId = ?';
-      params.push(songId);
-    }
-    if (teamId) {
-      query += ' AND teamId = ?';
-      params.push(teamId);
-    }
+    if (userId) { query += ' AND userId = ?'; params.push(userId); }
+    if (songId) { query += ' AND songId = ?'; params.push(songId); }
+    if (teamId) { query += ' AND teamId = ?'; params.push(teamId); }
 
     query += ' ORDER BY createdAt DESC';
 
-    const assignments = db.prepare(query).all(...params);
-    
-    // Parse JSON arrays
-    const parsedAssignments = assignments.map(assignment => ({
-      ...assignment,
-      assignedSections: parseJsonArray(assignment.assignedSections)
-    }));
-
-    res.json(parsedAssignments);
+    res.json(db.prepare(query).all(...params));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// GET /api/assignments/:id - Get assignment by ID
+// GET /api/assignments/:id
 router.get('/:id', (req, res) => {
   try {
-    const assignment = db.prepare('SELECT * FROM userSongAssignments WHERE id = ?').get(req.params.id);
-    if (!assignment) {
-      return res.status(404).json({ error: 'Assignment not found' });
-    }
-    
-    res.json({
-      ...assignment,
-      assignedSections: parseJsonArray(assignment.assignedSections)
-    });
+    const row = db.prepare('SELECT * FROM song_assignments WHERE id = ?').get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Assignment not found' });
+    res.json(row);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/assignments - Create new assignment
+// POST /api/assignments
 router.post('/', (req, res) => {
   try {
-    const { userId, songId, teamId, assignedSections, role } = req.body;
-    
+    const { userId, songId, teamId, role } = req.body;
+
     if (!userId || !songId || !teamId) {
       return res.status(400).json({ error: 'userId, songId, and teamId are required' });
     }
 
-    const id = generateId();
+    const id  = generateId();
     const now = getTimestamp();
 
     db.prepare(`
-      INSERT INTO userSongAssignments (id, userId, songId, teamId, assignedSections, role, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id, 
-      userId, 
-      songId, 
-      teamId, 
-      stringifyJsonArray(assignedSections || []), 
-      role || null, 
-      now, 
-      now
-    );
+      INSERT OR IGNORE INTO song_assignments (id, userId, songId, teamId, role, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(id, userId, songId, teamId, role || null, now);
 
-    const assignment = db.prepare('SELECT * FROM userSongAssignments WHERE id = ?').get(id);
-    res.status(201).json({
-      ...assignment,
-      assignedSections: parseJsonArray(assignment.assignedSections)
-    });
+    const row = db.prepare('SELECT * FROM song_assignments WHERE userId = ? AND songId = ?').get(userId, songId);
+    res.status(201).json(row);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// PUT /api/assignments/:id - Update assignment
+// PUT /api/assignments/:id  (update role)
 router.put('/:id', (req, res) => {
   try {
-    const { assignedSections, role } = req.body;
+    const { role } = req.body;
     const now = getTimestamp();
 
-    const result = db.prepare(`
-      UPDATE userSongAssignments 
-      SET assignedSections = ?, role = ?, updatedAt = ?
-      WHERE id = ?
-    `).run(
-      stringifyJsonArray(assignedSections || []), 
-      role || null, 
-      now, 
-      req.params.id
-    );
+    // song_assignments has no updatedAt column; just update role
+    const result = db.prepare('UPDATE song_assignments SET role = ? WHERE id = ?')
+      .run(role || null, req.params.id);
 
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Assignment not found' });
-    }
-
-    const assignment = db.prepare('SELECT * FROM userSongAssignments WHERE id = ?').get(req.params.id);
-    res.json({
-      ...assignment,
-      assignedSections: parseJsonArray(assignment.assignedSections)
-    });
+    if (result.changes === 0) return res.status(404).json({ error: 'Assignment not found' });
+    res.json(db.prepare('SELECT * FROM song_assignments WHERE id = ?').get(req.params.id));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// DELETE /api/assignments/:id - Delete assignment
+// DELETE /api/assignments/:id
 router.delete('/:id', (req, res) => {
   try {
-    const result = db.prepare('DELETE FROM userSongAssignments WHERE id = ?').run(req.params.id);
-    
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Comment not found' });
-    }
-
+    const result = db.prepare('DELETE FROM song_assignments WHERE id = ?').run(req.params.id);
+    if (result.changes === 0) return res.status(404).json({ error: 'Assignment not found' });
     res.json({ message: 'Assignment deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -139,4 +86,3 @@ router.delete('/:id', (req, res) => {
 });
 
 export default router;
-

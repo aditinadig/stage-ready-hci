@@ -1,13 +1,23 @@
 import express from 'express';
-import { db, generateId, getTimestamp, parseJsonArray, stringifyJsonArray } from '../database.js';
+import { db, generateId, getTimestamp } from '../database.js';
 
 const router = express.Router();
 
-// GET /api/sections - Get all sections (optionally filter by songId)
+// Shape a sections row for API responses.
+// Returns both `name` (new) and `displayName` (backward-compat alias).
+function shape(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    displayName: row.name, // backward-compat alias used by frontend
+  };
+}
+
+// GET /api/sections?songId=
 router.get('/', (req, res) => {
   try {
     const { songId } = req.query;
-    let query = 'SELECT * FROM songSections WHERE 1=1';
+    let query = 'SELECT * FROM sections WHERE 1=1';
     const params = [];
 
     if (songId) {
@@ -17,98 +27,81 @@ router.get('/', (req, res) => {
 
     query += ' ORDER BY orderIndex ASC';
 
-    const sections = db.prepare(query).all(...params);
-    res.json(sections);
+    const rows = db.prepare(query).all(...params);
+    res.json(rows.map(shape));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// GET /api/sections/:id - Get section by ID
+// GET /api/sections/:id
 router.get('/:id', (req, res) => {
   try {
-    const section = db.prepare('SELECT * FROM songSections WHERE id = ?').get(req.params.id);
-    if (!section) {
-      return res.status(404).json({ error: 'Section not found' });
-    }
-    res.json(section);
+    const row = db.prepare('SELECT * FROM sections WHERE id = ?').get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'Section not found' });
+    res.json(shape(row));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/sections - Create new section
+// POST /api/sections
 router.post('/', (req, res) => {
   try {
-    const { songId, sectionType, sectionNumber, displayName, orderIndex } = req.body;
-    
-    if (!songId || !sectionType || !displayName || orderIndex === undefined) {
-      return res.status(400).json({ error: 'songId, sectionType, displayName, and orderIndex are required' });
+    // Accept either `name` or `displayName` from callers
+    const { songId, name, displayName, sectionType, sectionNumber, orderIndex } = req.body;
+    const resolvedName = name || displayName;
+
+    if (!songId || !resolvedName || orderIndex === undefined) {
+      return res.status(400).json({ error: 'songId, name (or displayName), and orderIndex are required' });
     }
 
-    const id = generateId();
+    const id  = generateId();
     const now = getTimestamp();
 
     db.prepare(`
-      INSERT INTO songSections (id, songId, sectionType, sectionNumber, displayName, orderIndex, createdAt, updatedAt)
+      INSERT INTO sections (id, songId, name, sectionType, sectionNumber, orderIndex, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id, 
-      songId, 
-      sectionType, 
-      sectionNumber || 1, 
-      displayName, 
-      orderIndex, 
-      now, 
-      now
-    );
+    `).run(id, songId, resolvedName, sectionType || null, sectionNumber || 1, orderIndex, now, now);
 
-    const section = db.prepare('SELECT * FROM songSections WHERE id = ?').get(id);
-    res.status(201).json(section);
+    res.status(201).json(shape(db.prepare('SELECT * FROM sections WHERE id = ?').get(id)));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// PUT /api/sections/:id - Update section
+// PUT /api/sections/:id
 router.put('/:id', (req, res) => {
   try {
-    const { sectionType, sectionNumber, displayName, orderIndex } = req.body;
+    const { name, displayName, sectionType, sectionNumber, orderIndex } = req.body;
+    const resolvedName = name || displayName;
     const now = getTimestamp();
 
     const result = db.prepare(`
-      UPDATE songSections 
-      SET sectionType = ?, sectionNumber = ?, displayName = ?, orderIndex = ?, updatedAt = ?
+      UPDATE sections
+      SET name = ?, sectionType = ?, sectionNumber = ?, orderIndex = ?, updatedAt = ?
       WHERE id = ?
     `).run(
-      sectionType || null, 
-      sectionNumber || null, 
-      displayName || null, 
-      orderIndex !== undefined ? orderIndex : null, 
-      now, 
+      resolvedName || null,
+      sectionType  || null,
+      sectionNumber || null,
+      orderIndex !== undefined ? orderIndex : null,
+      now,
       req.params.id
     );
 
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Section not found' });
-    }
-
-    const section = db.prepare('SELECT * FROM songSections WHERE id = ?').get(req.params.id);
-    res.json(section);
+    if (result.changes === 0) return res.status(404).json({ error: 'Section not found' });
+    res.json(shape(db.prepare('SELECT * FROM sections WHERE id = ?').get(req.params.id)));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// DELETE /api/sections/:id - Delete section
+// DELETE /api/sections/:id
 router.delete('/:id', (req, res) => {
   try {
-    const result = db.prepare('DELETE FROM songSections WHERE id = ?').run(req.params.id);
-    
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Section not found' });
-    }
-
+    const result = db.prepare('DELETE FROM sections WHERE id = ?').run(req.params.id);
+    if (result.changes === 0) return res.status(404).json({ error: 'Section not found' });
     res.json({ message: 'Section deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -116,4 +109,3 @@ router.delete('/:id', (req, res) => {
 });
 
 export default router;
-
